@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <title>Signup</title>
+    </head>
+    <style>
+        body
+        {
+            background-color: rgb(172, 172, 172);
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 150px 250px;
+            text-align: center;
+        }
+        h1{
+            display: contents;
+            padding-top: 100px;
+            background-color: slategrey;
+            margin: 50px;
+        }
+        form{
+            display: block;
+            text-align: start;
+        }
+    </style>
+    <Body>
+        <h1>Create an account</h1>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Signup">
+        </form>
+    </Body>
+</html>

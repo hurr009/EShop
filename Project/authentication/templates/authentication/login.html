@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <title>Login</title>
+        <style>
+            body
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                background-color: rgb(172, 172, 172);
+                text-align: center;
+            }
+            h1{
+                display: inline-block;
+                padding-top: 100px;
+            }
+            form{
+                display: block;
+            }
+            span{
+                display: inline-block;
+                text-align: center;
+                color: rgb(255, 255, 255);
+                background-color: rgb(107, 3, 3);
+                padding: 15px 15px;
+                margin: 15px;
+                border-radius: 4px;
+            }
+            span a
+            {
+                color:rgb(186, 186, 186)
+            }
+            span a:hover{
+                color: red;
+            }
+        </style>
+    </head>
+    <Body>
+        <h1>Log into account</h1>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Login">
+        </form>
+        <span>
+            Don't have an account?
+            <a href="{% url 'signup' %}"> Sign up here</a>
+        </span>
+    </Body>
+</html>

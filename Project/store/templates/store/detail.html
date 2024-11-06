@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Detail</title>
+
+    <!-- Load Static Files -->
+    {% load static %}
+
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="{% static 'css/detail.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">{{ object.name }}</h1>
+        <h2 class="text-center">Price: {{ object.original_price }}Rs/-</h2>
+        <div class="text-center">
+            <img src="{{ object.image.url }}" alt="{{ object.name }}" class="item-image">
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 My Website</p>
+    </footer>
+</body>
+</html>
