@@ -1,28 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item Detail</title>
+    <title>Product Detail Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
 
-    <!-- Load Static Files -->
-    {% load static %}
+        .product-detail {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+        }
 
-    <!-- Link to the external CSS file -->
-    <link rel="stylesheet" href="{% static 'css/detail.css' %}">
+        .product-image img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+        }
+
+        .product-title {
+            font-size: 24px;
+            margin: 15px 0;
+            color: #333;
+        }
+
+        .product-price {
+            font-size: 20px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .buy-now {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .buy-now:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1 class="text-center">{{ object.name }}</h1>
-        <h2 class="text-center">Price: {{ object.original_price }}Rs/-</h2>
-        <div class="text-center">
-            <img src="{{ object.image.url }}" alt="{{ object.name }}" class="item-image">
+    <div class="product-detail">
+        <div class="product-image">
+            <img src="{{object.image.url}}" alt="Product Image">
         </div>
+        <h1 class="product-title">{{object.name}}</h1>
+        <p class="product-price">{{object.original_price}}Rs/-</p>
+        <p class="product-description">
+            {{object.description}}
+        </p>
+        <form action="{% url 'cart' %}" method="POST" class="text-center">
+            {% csrf_token %}
+            <input hidden type="text" value="{{object.id}}" name="item_id">
+            <button type="submit" class="btn btn-success mt-2">Buy Now</button>
+        </form>    
     </div>
-    
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 My Website</p>
-    </footer>
 </body>
+
 </html>

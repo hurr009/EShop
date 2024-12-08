@@ -35,6 +35,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    #'daphne',
+    #'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,7 +77,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'EShop.wsgi.application'
+#ASGI_APPLICATION = 'EShop.asgi.application'
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -131,3 +142,6 @@ LOGOUT_REDIRECT_URL = 'login/'
 
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51QQsEuBclfRToBX6JpgCMngu2pRUCdFL7XcBnelK5DfAfVVpDmVuepQJHqUgV9vCw5L3VX5MWpgFdEusdxCOS8jm00CbpPflXa'
+STRIPE_SECRET_KEY = 'sk_test_51QQsEuBclfRToBX6Y3mEyU7FtcMUdztO7ypnozumUkNYEHTNjrLHCm90Mj5HNGK1DBHticpO5I5xIfDBalKsXoLb00ZpKJb4jO'
