@@ -5,9 +5,13 @@ from django.views.generic import ListView, DetailView, FormView, View, TemplateV
 from django.shortcuts import render, HttpResponse, redirect
 from django.utils.decorators import method_decorator
 from django.urls import reverse
+
+
 from .models import item, category, Order
 from .middlewares.auth import auth_middleware
 
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class StoreListView(ListView):
     template_name="store/store.html"
@@ -49,8 +53,9 @@ class StoreListView(ListView):
         if 'query' in request.GET:
             query = request.GET['query']
             object_list = object_list.filter(name__icontains=query)
+
         context = {'category_list': category_list, 'object_list': object_list}
-        return render(request, 'store/store.html', context)  
+        return render(request, 'store/store.html', context)
 
 
 class ItemDetailView(DetailView):
@@ -101,6 +106,29 @@ class CheckoutView(TemplateView):
     template_name='store/orders.html'
 
     def get(self, request):
+     
+        cart = request.session.get('cart')
+        keys = list(cart.keys())
+        items = item.get_items_by_IDs(keys)
+        stripe_items = []   
+        for i in items:
+                stripe_items.append({
+                    'price': i.stripe_priceid,
+                    'quantity': cart.get(str(i.id)),
+                })   
+        checkout_session = stripe.checkout.Session.create(
+            line_items=stripe_items,   
+            mode='payment',
+            success_url= 'http://127.0.0.1:8000/store/Checkout',
+            cancel_url= 'http://127.0.0.1:8000/store/Cart',
+        )
+        return redirect(checkout_session.url, code=303)
+
+
+class CheckoutView(TemplateView):
+    template_name='store/orders.html'
+
+    def get(self, request):
         cart = request.session.get('cart')
         keys = list(cart.keys())
         items = item.get_items_by_IDs(keys)
@@ -120,3 +148,4 @@ class CheckoutView(TemplateView):
             order.save()
         request.session['cart'] = {}        
         return redirect(reverse('orders'))   
+

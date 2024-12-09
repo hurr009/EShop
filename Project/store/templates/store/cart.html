@@ -8,6 +8,8 @@ Cart
 
 {% block content %}
 
+<script src="https://js.stripe.com/v3/"></script>
+
 <div class="container">
     <div class="border rounded p-4 m-4">
         <caption>
@@ -77,6 +79,7 @@ Cart
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+
           <form action="{%url 'orders'%}" method="post">
             {% csrf_token %}
             <div class="mb-3">
