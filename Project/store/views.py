@@ -1,13 +1,17 @@
 from typing import Any
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
-from django.views.generic import ListView, DetailView, FormView, View
+from django.views.generic import ListView, DetailView, FormView, View, TemplateView
 from django.shortcuts import render, HttpResponse, redirect
 from django.utils.decorators import method_decorator
+from django.urls import reverse
+
 
 from .models import item, category, Order
 from .middlewares.auth import auth_middleware
 
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class StoreListView(ListView):
     template_name="store/store.html"
@@ -46,8 +50,12 @@ class StoreListView(ListView):
             object_list = item.get_all_items()
         else:
             object_list = item.get_items_by_categoryID(int(category_id))
+        if 'query' in request.GET:
+            query = request.GET['query']
+            object_list = object_list.filter(name__icontains=query)
+
         context = {'category_list': category_list, 'object_list': object_list}
-        return render(request, 'store/store.html', context)  
+        return render(request, 'store/store.html', context)
 
 
 class ItemDetailView(DetailView):
@@ -64,10 +72,63 @@ class CartView(ListView):
         if request.session.get('cart') != None:
             cart = list(request.session.get('cart').keys())
         object_list = item.get_items_by_IDs(cart)
+        if 'query' in request.GET:
+            query = request.GET['query']
+            object_list = object_list.filter(name__icontains=query)
         context = {'object_list': object_list}
         return render(request, 'store/cart.html', context)
     
-    def post(self, request):
+    @method_decorator(auth_middleware)    
+    def post(self, request):       
+        cart = request.session.get('cart')
+        product_id = request.POST.get('item_id')
+        if cart == None:
+            cart = {
+                product_id: 1
+            }
+        else:
+            cart[product_id] = 1
+        request.session['cart'] = cart
+        return redirect('cart')
+    
+class OrderListView(ListView):
+    template_name = 'store/orders.html'
+    
+    @method_decorator(auth_middleware)
+    def get(self, request):
+        customer_id = request.user.id
+        orders = Order.get_orders_by_userid(customer_id)
+        context = {'orders': orders}
+        return render(request, 'store/orders.html', context)
+    
+    
+class CheckoutView(TemplateView):
+    template_name='store/orders.html'
+
+    def get(self, request):
+     
+        cart = request.session.get('cart')
+        keys = list(cart.keys())
+        items = item.get_items_by_IDs(keys)
+        stripe_items = []   
+        for i in items:
+                stripe_items.append({
+                    'price': i.stripe_priceid,
+                    'quantity': cart.get(str(i.id)),
+                })   
+        checkout_session = stripe.checkout.Session.create(
+            line_items=stripe_items,   
+            mode='payment',
+            success_url= 'http://127.0.0.1:8000/store/Checkout',
+            cancel_url= 'http://127.0.0.1:8000/store/Cart',
+        )
+        return redirect(checkout_session.url, code=303)
+
+
+class CheckoutView(TemplateView):
+    template_name='store/orders.html'
+
+    def get(self, request):
         cart = request.session.get('cart')
         keys = list(cart.keys())
         items = item.get_items_by_IDs(keys)
@@ -83,18 +144,8 @@ class CartView(ListView):
                           address=address,
                           quantity=cart.get(str(i.id)),
                           price=i.original_price
-                          )
+                          )    
             order.save()
-        request.session['cart'] = {}
-        print("good")
-        return redirect('cart')    
-    
-class OrderListView(ListView):
-    template_name = 'store/orders.html'
-    
-    @method_decorator(auth_middleware)
-    def get(self, request):
-        customer_id = request.user.id
-        orders = Order.get_orders_by_userid(customer_id)
-        context = {'orders': orders}
-        return render(request, 'store/orders.html', context)
+        request.session['cart'] = {}        
+        return redirect(reverse('orders'))   
+
