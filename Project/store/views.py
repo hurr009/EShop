@@ -1,12 +1,9 @@
 from typing import Any
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
-from django.views.generic import ListView, DetailView, FormView, TemplateView
-from django.views import View
+from django.views.generic import ListView, DetailView, FormView, View, TemplateView
 from django.shortcuts import render, HttpResponse, redirect
 from django.utils.decorators import method_decorator
-import stripe
-from django.conf import settings
 from django.urls import reverse
 
 
@@ -56,7 +53,7 @@ class StoreListView(ListView):
         if 'query' in request.GET:
             query = request.GET['query']
             object_list = object_list.filter(name__icontains=query)
-                
+
         context = {'category_list': category_list, 'object_list': object_list}
         return render(request, 'store/store.html', context)
 
@@ -92,11 +89,24 @@ class CartView(ListView):
         else:
             cart[product_id] = 1
         request.session['cart'] = cart
-        return redirect('cart')    
+        return redirect('cart')
     
+class OrderListView(ListView):
+    template_name = 'store/orders.html'
+    
+    @method_decorator(auth_middleware)
+    def get(self, request):
+        customer_id = request.user.id
+        orders = Order.get_orders_by_userid(customer_id)
+        context = {'orders': orders}
+        return render(request, 'store/orders.html', context)
+    
+    
+class CheckoutView(TemplateView):
+    template_name='store/orders.html'
 
-class StripeCheckoutView(View):
-    def post(self, request):
+    def get(self, request):
+     
         cart = request.session.get('cart')
         keys = list(cart.keys())
         items = item.get_items_by_IDs(keys)
@@ -137,15 +147,5 @@ class CheckoutView(TemplateView):
                           )    
             order.save()
         request.session['cart'] = {}        
-        return redirect(reverse('orders'))
+        return redirect(reverse('orders'))   
 
-
-class OrderListView(ListView):
-    template_name = 'store/orders.html'
-    
-    @method_decorator(auth_middleware)
-    def get(self, request):
-        customer_id = request.user.id
-        orders = Order.get_orders_by_userid(customer_id)
-        context = {'orders': orders}
-        return render(request, 'store/orders.html', context)
